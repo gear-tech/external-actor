@@ -113,7 +113,7 @@ unsafe extern "C" fn handle() {
                     push_proof(wake_id, proof);
                 }
             } else {
-                // report error about proof
+                // TODO: report error about proof
             }
         }
     }

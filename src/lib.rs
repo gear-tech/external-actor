@@ -29,11 +29,14 @@ static mut PROOFS: Option<HashMap<MessageId, ProofData>> = None;
 
 #[no_mangle]
 unsafe extern "C" fn init() {
-    queue::QUEUE = Some(vec![]);
+    let init: io::Initialization = gstd::msg::load().expect("failed to read init payload");
+
     WAKERS = Some(Default::default());
     PROOFS = Some(Default::default());
-    gcore::msg::read_at(0, &mut ACTOR_CODE_HASH[..]).expect("Unable to read actor code hash");
-    gcore::msg::read_at(32, &mut ACTOR_STATE_HASH[..]).expect("Unable to read actor state hash");
+    queue::QUEUE = Some(Default::default());
+
+    ACTOR_CODE_HASH = init.actor_code_hash;
+    ACTOR_STATE_HASH = init.actor_state_hash;
 }
 
 fn push_waker(index: u64) {
@@ -61,6 +64,15 @@ fn pop_proof() -> Option<ProofData> {
             .expect("PROOFS should have been initialized!")
     };
     proofs.remove(&gstd::msg::id())
+}
+
+fn push_proof(handler: MessageId, data: ProofData) {
+    unsafe {
+        PROOFS
+            .as_mut()
+            .expect("PROOFS should have been initialized!")
+            .insert(handler, data);
+    }
 }
 
 fn validate_proof(_proof: &ProofData) -> bool {
@@ -91,13 +103,14 @@ unsafe extern "C" fn handle() {
 
                 push_waker(new_index);
 
-                gcore::exec::wait()
+                gcore::exec::wait();
             }
         }
         Incoming::Proof(proof) => {
             if validate_proof(&proof) {
                 if let Some(wake_id) = pop_waker(proof.index) {
                     gcore::exec::wake(wake_id.into()).expect("Failed to wake");
+                    push_proof(wake_id, proof);
                 }
             } else {
                 // report error about proof

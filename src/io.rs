@@ -20,3 +20,9 @@ pub enum Incoming {
     New(Vec<u8>),
     Proof(ProofData),
 }
+
+#[derive(Encode, Decode, Debug)]
+pub struct Initialization {
+    pub actor_code_hash: [u8; 32],
+    pub actor_state_hash: [u8; 32],
+}

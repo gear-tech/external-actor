@@ -1,6 +1,6 @@
 use gstd::{prelude::*, ActorId};
 
-pub (crate) static mut QUEUE: Option<Vec<Message>> = None;
+pub(crate) static mut QUEUE: Option<Vec<Message>> = None;
 static mut ROLLING_INDEX: u64 = 0;
 
 pub struct Queue;

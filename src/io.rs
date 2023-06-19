@@ -1,5 +1,5 @@
+use codec::{Decode, Encode};
 use gstd::prelude::*;
-use codec::{Encode, Decode};
 
 #[derive(Encode, Decode, Debug)]
 pub enum ExecutionOutcome {
@@ -11,7 +11,6 @@ pub enum ExecutionOutcome {
 pub struct ProofData {
     pub index: u64,
     pub new_actor_state: [u8; 32],
-    pub reply: Vec<u8>,
     pub proof: Vec<u8>,
     pub outcome: ExecutionOutcome,
 }

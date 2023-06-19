@@ -11,14 +11,16 @@ pub use code::WASM_BINARY_OPT as WASM_BINARY;
 extern crate gstd;
 extern crate hashbrown;
 
-mod queue;
 mod io;
+mod queue;
+#[cfg(test)]
+mod tests;
 
 use gstd::{prelude::*, MessageId};
 use hashbrown::HashMap;
 
-use io::{Incoming, ProofData, ExecutionOutcome};
-use queue::{Queue, NewMessage};
+use io::{ExecutionOutcome, Incoming, ProofData};
+use queue::{NewMessage, Queue};
 
 static mut ACTOR_CODE_HASH: [u8; 32] = [0u8; 32];
 static mut ACTOR_STATE_HASH: [u8; 32] = [0u8; 32];
@@ -35,17 +37,29 @@ unsafe extern "C" fn init() {
 }
 
 fn push_waker(index: u64) {
-    let wakers = unsafe { WAKERS.as_mut().expect("WAKERS should have been initialized!") };
+    let wakers = unsafe {
+        WAKERS
+            .as_mut()
+            .expect("WAKERS should have been initialized!")
+    };
     wakers.insert(index, gstd::msg::id());
 }
 
 fn pop_waker(index: u64) -> Option<MessageId> {
-    let wakers = unsafe { WAKERS.as_mut().expect("WAKERS should have been initialized!") };
+    let wakers = unsafe {
+        WAKERS
+            .as_mut()
+            .expect("WAKERS should have been initialized!")
+    };
     wakers.remove(&index)
 }
 
 fn pop_proof() -> Option<ProofData> {
-    let proofs = unsafe { PROOFS.as_mut().expect("PROOFS should have been initialized!") };
+    let proofs = unsafe {
+        PROOFS
+            .as_mut()
+            .expect("PROOFS should have been initialized!")
+    };
     proofs.remove(&gstd::msg::id())
 }
 
@@ -62,14 +76,11 @@ unsafe extern "C" fn handle() {
             if let Some(proof) = pop_proof() {
                 match proof.outcome {
                     ExecutionOutcome::Ok(Some(reply)) => {
-                        gcore::msg::reply(
-                            &reply[..],
-                            0,
-                        ).expect("Failed to reply");
-                    },
+                        gcore::msg::reply(&reply[..], 0).expect("Failed to reply");
+                    }
                     // nothing to do in case of error / no reply
                     // TODO: find a way to generate error reply
-                    _ => { },
+                    _ => {}
                 }
             } else {
                 let new_index = Queue::push(NewMessage {
@@ -82,7 +93,7 @@ unsafe extern "C" fn handle() {
 
                 gcore::exec::wait()
             }
-        },
+        }
         Incoming::Proof(proof) => {
             if validate_proof(&proof) {
                 if let Some(wake_id) = pop_waker(proof.index) {

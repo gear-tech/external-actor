@@ -4,15 +4,19 @@ version = "0.1.0"
 build = "build.rs"
 
 [dependencies]
-gstd = { git = "https://github.com/gear-tech/gear.git" }
-gcore = { git = "https://github.com/gear-tech/gear.git" }
+gstd = { git = "https://github.com/gear-tech/gear.git", branch = "nv-gtest-logging" }
+gcore = { git = "https://github.com/gear-tech/gear.git", branch = "nv-gtest-logging" }
 codec = { package = "parity-scale-codec", version = "3.4.0", default-features = false, features = ["derive"] }
 scale-info = { version = "2.5.0", default-features = false, features = ["derive"] }
 futures = { version = "0.3", default-features = false, features = ["alloc"] }
 hashbrown = "0.13"
 
 [build-dependencies]
-gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git" }
+gear-wasm-builder = { git = "https://github.com/gear-tech/gear.git", branch = "nv-gtest-logging" }
+
+[dev-dependencies]
+gtest = { git = "https://github.com/gear-tech/gear.git", branch = "nv-gtest-logging" }
+hex-literal = "*"
 
 [features]
 debug = ["gstd/debug"]

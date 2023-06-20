@@ -13,6 +13,7 @@ extern crate hashbrown;
 
 mod io;
 mod queue;
+mod events;
 #[cfg(test)]
 mod tests;
 
@@ -95,6 +96,7 @@ unsafe extern "C" fn handle() {
                     _ => {}
                 }
             } else {
+                let size = payload.len();
                 let new_index = Queue::push(NewMessage {
                     payload: payload,
                     sender: gstd::msg::source(),
@@ -102,6 +104,8 @@ unsafe extern "C" fn handle() {
                 });
 
                 push_waker(new_index);
+
+                events::send(events::Event::NewPayload { index: new_index, size: size as _ });
 
                 gcore::exec::wait();
             }
@@ -114,6 +118,9 @@ unsafe extern "C" fn handle() {
                 }
             } else {
                 // TODO: report error about proof
+                events::send(events::Event::InvalidProof {
+                    index: proof.index
+                });
             }
         }
     }
